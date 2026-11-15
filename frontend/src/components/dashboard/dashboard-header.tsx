@@ -16,13 +16,16 @@ export function DashboardHeader({ period }: DashboardHeaderProps) {
           <p className="text-xs text-muted-foreground mt-0.5">Executive metrics dashboard</p>
         </div>
       </div>
-      {period ? (
-        <div className="flex items-center gap-2">
+      {/* The slot is always rendered with the badge's height, so the period
+          arriving from /facets does not push the page down on narrow screens
+          (core-web-vitals CLS.md: stable container before the content). */}
+      <div className="flex min-h-[26px] items-center gap-2">
+        {period ? (
           <span className="inline-flex items-center rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
             {period}
           </span>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
     </header>
   )
 }

@@ -34,21 +34,9 @@ const variantStyles: Record<KPICardProps['variant'], { badge: string; icon: stri
 export function KPICard({ label, value, helperText, icon: Icon, variant, loading }: KPICardProps) {
   const styles = variantStyles[variant]
 
-  if (loading) {
-    return (
-      <Card className="border-border/60">
-        <CardContent className="p-6 flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-8 w-8 rounded-lg" />
-          </div>
-          <Skeleton className="h-8 w-36" />
-          <Skeleton className="h-3 w-44" />
-        </CardContent>
-      </Card>
-    )
-  }
-
+  // Label, icon and helper text are static, so the loading state renders them
+  // as-is and only the value is a placeholder. The card keeps the same height
+  // when the data arrives (no layout shift, core-web-vitals CLS.md).
   return (
     <Card className="border-border/60 hover:border-border transition-colors">
       <CardContent className="p-6 flex flex-col gap-4">
@@ -60,7 +48,12 @@ export function KPICard({ label, value, helperText, icon: Icon, variant, loading
             <Icon size={16} className={styles.icon} />
           </span>
         </div>
-        <p className="text-3xl font-semibold tracking-tight text-foreground">{value}</p>
+        {loading ? (
+          // h-9 is the 36px line height of text-3xl.
+          <Skeleton className="h-9 w-36" />
+        ) : (
+          <p className="text-3xl font-semibold tracking-tight text-foreground">{value}</p>
+        )}
         <p className="text-xs text-muted-foreground leading-relaxed">{helperText}</p>
       </CardContent>
     </Card>

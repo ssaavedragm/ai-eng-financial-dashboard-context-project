@@ -6,6 +6,10 @@
  * the API's own `snake_case` names. Verified against the running API on
  * 2026-11-14.
  *
+ * Dates are plain `string`s in `YYYY-MM-DD` format (OpenAPI `"format": "date"`),
+ * with no time or timezone. Compare them as strings; never parse them with
+ * `new Date(value)`, which reads UTC midnight and shifts the day behind UTC.
+ *
  * The literal unions `OperationType`, `Category` and `BusinessType` are not
  * redefined here: they are re-exported from `src/lib/financial-types.ts`, so
  * the app and these specs share one copy.
@@ -18,15 +22,6 @@ import type {
 } from "../src/lib/financial-types";
 
 export type { BusinessType, Category, OperationType };
-
-/**
- * A calendar date as the API sends and accepts it: `YYYY-MM-DD`, with no time
- * and no timezone (OpenAPI `"format": "date"`).
- *
- * Compare two values as strings. Do not parse with `new Date(value)`: that
- * reads UTC midnight, and local getters return the previous day behind UTC.
- */
-export type IsoDate = string;
 
 /**
  * Response of `GET /api/metrics/facets` (OpenAPI schema `MetricsFacets`).
@@ -60,12 +55,12 @@ export interface FacetsResponse {
    * Moves with today's date: it falls in the month 12 months before the
    * current one, on a day from 1 to 28.
    */
-  min_date: IsoDate;
+  min_date: string;
   /**
    * Date of the latest movement in the dataset. Format: `YYYY-MM-DD`.
    * Not necessarily the end of a month: generated days run from 1 to 28.
    */
-  max_date: IsoDate;
+  max_date: string;
 }
 
 /**

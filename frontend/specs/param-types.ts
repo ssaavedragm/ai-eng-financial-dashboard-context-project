@@ -10,7 +10,7 @@
  * what prevents that.
  */
 
-import type { BusinessType, IsoDate, OperationType } from "./api-types";
+import type { BusinessType, OperationType } from "./api-types";
 
 /**
  * Optional date range, accepted by `GET /api/metrics`,
@@ -25,11 +25,11 @@ export interface DateRangeFilter {
   /**
    * First day to include. Format: `YYYY-MM-DD`. Omitted: no lower bound.
    */
-  start_date?: IsoDate;
+  start_date?: string;
   /**
    * Last day to include. Format: `YYYY-MM-DD`. Omitted: no upper bound.
    */
-  end_date?: IsoDate;
+  end_date?: string;
 }
 
 /**

@@ -15,6 +15,10 @@ Ninguna funcionalidad necesita cambios en el backend: todos los parámetros que
 hacen falta ya existen. Implementa en orden 1 → 2 → 3, porque 2 y 3 reutilizan el
 estado de fechas de 1.
 
+**El contrato para implementar está en `frontend/specs/`** (README, tipos y
+componentes, en inglés). Esta carpeta explica por qué se tomó cada decisión
+frente a lo que pidió el PM. Si algo no coincide, manda `frontend/specs/`.
+
 Lee también `.agents/rules/frontend.md`, `.agents/rules/api-contract.md` y
 `.agents/rules/workflow.md`. Esta spec no las repite salvo donde importan.
 

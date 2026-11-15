@@ -13,7 +13,7 @@ All of these were run or observed on that date:
 | Backend tests | 25 passed, 100% coverage of `app/` |
 | Frontend tests | 9 passed, also with `TZ=America/Santiago` |
 | Lint | No errors |
-| Build, including type check | Succeeds, with a warning about a 584 kB chunk |
+| Build, including type check | Succeeds with no warning since 2026-11-14 (main chunk 187.9 kB; was 585.9 kB with a >500 kB warning) |
 | API | All 9 routes respond, and match `memory-bank/architecture.md` |
 | Proxy | `/api` reaches the backend through port 5173 |
 | Browser | Headless Chrome shows the KPIs, both charts, the period label and the loading state |
@@ -48,11 +48,16 @@ None of these are fixed. Fix them only when asked.
 
 **Small fixes**
 
-- **Mixed UI language:** the error in `App.tsx` is in Spanish, and misspells
-  "información". The rest of the UI is in English.
 - **Lost error detail:** `App.tsx` discards the cause of a failed fetch.
 - **Unused data:** nothing imports `frontend/src/lib/mock-data.ts`.
-- **Bundle size:** the production chunk is 584 kB.
+- **No robots.txt:** Lighthouse fails `robots-txt`, because `/robots.txt` returns
+  the app's HTML. Found on 2026-11-14.
+- **Empty slot when `/facets` fails:** the header keeps a 26px slot for the period
+  badge so it cannot shift the page; on narrow screens the slot stays empty if the
+  request fails. Accepted trade-off, 2026-11-14.
+
+Fixed on 2026-11-14 (see `progress.md`): the mixed UI language (the error is now in
+English) and the 584 kB bundle warning.
 
 **Not wired up**
 

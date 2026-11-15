@@ -8,6 +8,10 @@ Agents working on this project **must**:
 - Look for available **agent skills** in the directory:  
   `./.agents/skills`
 
+- Look for **internal project skills** in `./.skills` (for example
+  `ui-quality-gate` before committing a frontend change), and for installed
+  community skills in `./.claude/skills` (listed in `skills-lock.json`)
+
 - Look for the **project memory bank** in:  
   `./memory-bank`  
   _(if the directory exists)_

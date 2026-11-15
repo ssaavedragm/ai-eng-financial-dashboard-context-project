@@ -1,8 +1,21 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { KPIRow } from "@/components/dashboard/kpi-row";
-import { IncomeOutcomeChart } from "@/components/dashboard/income-outcome-chart";
-import { ProfitPercentChart } from "@/components/dashboard/profit-percent-chart";
+import { ChartCardSkeleton } from "@/components/dashboard/chart-card-skeleton";
+
+// Recharts is most of the bundle. Loading the charts lazily (the Vite
+// equivalent of next/dynamic, vercel-react-best-practices
+// bundle-dynamic-imports) lets the header and KPIs render without it.
+const IncomeOutcomeChart = lazy(() =>
+  import("@/components/dashboard/income-outcome-chart").then((m) => ({
+    default: m.IncomeOutcomeChart,
+  })),
+);
+const ProfitPercentChart = lazy(() =>
+  import("@/components/dashboard/profit-percent-chart").then((m) => ({
+    default: m.ProfitPercentChart,
+  })),
+);
 import {
   type FinancialMovement,
   type KPIMetrics,
@@ -47,9 +60,8 @@ function App() {
         setMonthlyData(computeMonthlyData(movements));
       })
       .catch(() => {
-        setError(
-          "No se pudo cargar la informacion financiera. Revisa la API de backend.",
-        );
+        // English to match <html lang="en"> (WCAG 3.1.2, language of parts).
+        setError("Could not load financial data. Check the backend API.");
       })
       .finally(() => {
         setLoading(false);
@@ -66,27 +78,52 @@ function App() {
   }, []);
 
   return (
-    <main className="dark min-h-screen bg-background text-foreground">
+    <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8">
           <DashboardHeader period={period} />
 
           {error ? (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive-foreground">
+            <div
+              role="alert"
+              className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive-foreground"
+            >
               {error}
             </div>
           ) : null}
 
-          <section aria-label="Key performance indicators">
+          <section aria-labelledby="kpi-heading" aria-busy={loading}>
+            <h2 id="kpi-heading" className="sr-only">
+              Key performance indicators
+            </h2>
             <KPIRow metrics={metrics} loading={loading} />
           </section>
 
-          <section
-            aria-label="Financial charts"
-            className="grid grid-cols-1 gap-4 xl:grid-cols-2"
-          >
-            <IncomeOutcomeChart data={monthlyData} loading={loading} />
-            <ProfitPercentChart data={monthlyData} loading={loading} />
+          <section aria-labelledby="charts-heading" aria-busy={loading}>
+            <h2 id="charts-heading" className="sr-only">
+              Financial charts
+            </h2>
+            {/* The chart chunk is only requested once the data has arrived, so
+                it does not compete with /api/metrics for bandwidth and delay
+                the KPI values (the LCP element). vercel-react-best-practices
+                bundle-conditional. */}
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+              {loading ? (
+                <>
+                  <ChartCardSkeleton />
+                  <ChartCardSkeleton />
+                </>
+              ) : (
+                <>
+                  <Suspense fallback={<ChartCardSkeleton />}>
+                    <IncomeOutcomeChart data={monthlyData} />
+                  </Suspense>
+                  <Suspense fallback={<ChartCardSkeleton />}>
+                    <ProfitPercentChart data={monthlyData} />
+                  </Suspense>
+                </>
+              )}
+            </div>
           </section>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
+import { ChartCardSkeleton } from './chart-card-skeleton'
+import { ChartDataTable } from './chart-data-table'
 import { type MonthlyDataPoint } from '@/lib/financial-types'
 import { formatCurrency } from '@/lib/financial-utils'
 import {
@@ -48,17 +49,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 
 export function IncomeOutcomeChart({ data, loading }: IncomeOutcomeChartProps) {
   if (loading) {
-    return (
-      <Card className="border-border/60">
-        <CardHeader className="pb-4">
-          <Skeleton className="h-5 w-52" />
-          <Skeleton className="h-3 w-64 mt-1" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-[280px] w-full rounded-lg" />
-        </CardContent>
-      </Card>
-    )
+    return <ChartCardSkeleton />
   }
 
   const hasData = data.some((d) => d.income > 0 || d.outcome > 0)
@@ -66,7 +57,9 @@ export function IncomeOutcomeChart({ data, loading }: IncomeOutcomeChartProps) {
   return (
     <Card className="border-border/60">
       <CardHeader className="pb-4">
-        <CardTitle className="text-base font-semibold">Income vs. Outcome</CardTitle>
+        <CardTitle className="text-base font-semibold">
+          <h3>Income vs. Outcome</h3>
+        </CardTitle>
         <CardDescription>Monthly revenue and expenditure evolution</CardDescription>
       </CardHeader>
       <CardContent>
@@ -75,17 +68,23 @@ export function IncomeOutcomeChart({ data, loading }: IncomeOutcomeChartProps) {
             No data available to display
           </div>
         ) : (
+          <>
           <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+            <LineChart
+              data={data}
+              margin={{ top: 4, right: 8, left: 0, bottom: 0 }}
+              title="Income vs. outcome by month"
+              desc="Line chart. Use the left and right arrow keys to move between months. A table with the same values follows."
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.6} />
               <XAxis
                 dataKey="month"
-                tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)' }}
+                tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)' }}
+                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
@@ -103,20 +102,30 @@ export function IncomeOutcomeChart({ data, loading }: IncomeOutcomeChartProps) {
                 name="income"
                 stroke="var(--chart-income)"
                 strokeWidth={2}
+                legendType="plainline"
                 dot={{ r: 3, fill: 'var(--chart-income)', strokeWidth: 0 }}
                 activeDot={{ r: 5, strokeWidth: 0 }}
               />
+              {/* Dashed so the two series differ by more than color (WCAG 1.4.1). */}
               <Line
                 type="monotone"
                 dataKey="outcome"
                 name="outcome"
                 stroke="var(--chart-outcome)"
                 strokeWidth={2}
+                strokeDasharray="6 4"
+                legendType="plainline"
                 dot={{ r: 3, fill: 'var(--chart-outcome)', strokeWidth: 0 }}
                 activeDot={{ r: 5, strokeWidth: 0 }}
               />
             </LineChart>
           </ResponsiveContainer>
+          <ChartDataTable
+            caption="Monthly income and outcome"
+            columns={['Month', 'Income', 'Outcome']}
+            rows={data.map((d) => [d.month, formatCurrency(d.income), formatCurrency(d.outcome)])}
+          />
+          </>
         )}
       </CardContent>
     </Card>

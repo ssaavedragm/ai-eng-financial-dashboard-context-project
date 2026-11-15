@@ -30,7 +30,7 @@ filas que faltan.
 
 ### 3. "Porcentaje sobre el total del grupo": la API no lo da
 
-`TopCategoryItem` no trae ni el total del grupo ni un porcentaje. **Resolución:**
+`CategoryEntry` no trae ni el total del grupo ni un porcentaje. **Resolución:**
 
 - Total del grupo = suma de `total_amount` de las filas devueltas. Es exacto
   porque `limit=5` es igual al número de categorías que existen (5), así que no
@@ -66,7 +66,7 @@ referencia del filtro de fechas (spec 1).
 
 El PM pide filtrar la comparativa por rango de fechas. **Resolución:** se usa el
 mismo estado `startDate`/`endDate` de la spec 1, compartido entre pestañas. El
-componente `DateRangeFilter` aparece encima del contenido en las dos vistas.
+componente `DateRangeControls` aparece encima del contenido en las dos vistas.
 
 ## Endpoint: `GET /api/metrics/categories/top`
 
@@ -82,11 +82,11 @@ Se hacen dos peticiones en paralelo (`Promise.all`), una por línea de negocio:
 
 Este endpoint **no** acepta `category`: lo ignora en silencio.
 
-**Respuesta:** `TopCategoryItem[]`, ordenada por `total_amount` de mayor a menor.
-Añade el tipo a `financial-types.ts`:
+**Respuesta:** `TopCategoriesResponse` (`CategoryEntry[]`), ordenada por
+`total_amount` de mayor a menor. Los tipos están en `frontend/specs/api-types.ts`:
 
 ```ts
-export interface TopCategoryItem {
+interface CategoryEntry {
   category: Category
   operation_type: OperationType
   total_amount: number // redondeado a 2 decimales
@@ -108,9 +108,9 @@ Con un rango sin datos (por ejemplo `start_date=2030-01-01`) devuelve `200 []`.
 
 ```ts
 async function fetchTopIncomeCategories(
-  params: { businessType: BusinessType; startDate: string; endDate: string },
+  params: TopCategoriesParams, // frontend/specs/param-types.ts
   signal?: AbortSignal,
-): Promise<TopCategoryItem[]>
+): Promise<TopCategoriesResponse>
 ```
 
 - Mensaje de error: `Failed to fetch top categories: ${status}`.
@@ -126,7 +126,7 @@ export interface CategoryShare {
   totalAmount: number
   sharePercent: number // de 0 a 100
 }
-export function computeCategoryShares(items: TopCategoryItem[]): {
+export function computeCategoryShares(items: TopCategoriesResponse): {
   rows: CategoryShare[]
   groupTotal: number
 }
@@ -156,7 +156,7 @@ export function computeCategoryShares(items: TopCategoryItem[]): {
 
 - Las pestañas van debajo de `DashboardHeader`, como botones con
   `role="tab"`/`aria-selected` dentro de un `role="tablist"`.
-- Debajo va `DateRangeFilter`, compartido.
+- Debajo va `DateRangeControls`, compartido.
 - Las tablas van en `grid grid-cols-1 gap-4 xl:grid-cols-2`, como los gráficos
   actuales. B2B a la izquierda.
 - El gráfico va debajo, a todo el ancho.

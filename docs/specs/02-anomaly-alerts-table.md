@@ -19,11 +19,11 @@ el filtro de fechas.
 | `end_date` | `YYYY-MM-DD` | — | Solo si tiene valor |
 | `business_type` | `B2B` o `B2C` | — | No |
 
-**Respuesta:** `MetricsAlert[]`, ordenada por periodo. Añade el tipo a
-`financial-types.ts`:
+**Respuesta:** `AlertsResponse` (`AlertEntry[]`), ordenada por periodo. Los tipos
+están en `frontend/specs/api-types.ts`:
 
 ```ts
-export interface MetricsAlert {
+interface AlertEntry {
   period: string           // "YYYY-MM" con group_by=month
   outcome_total: number    // gasto del periodo, redondeado a 2 decimales
   baseline_average: number // ver ajuste 1
@@ -103,9 +103,9 @@ Esto puede sorprender al PM y al QA, así que la UI lo explica:
 
 ```ts
 async function fetchMetricsAlerts(
-  params: { threshold: number; startDate: string; endDate: string },
+  params: AlertsParams, // frontend/specs/param-types.ts
   signal?: AbortSignal,
-): Promise<MetricsAlert[]>
+): Promise<AlertsResponse>
 ```
 
 - Mensaje de error: `Failed to fetch metrics alerts: ${status}`.
@@ -116,7 +116,7 @@ async function fetchMetricsAlerts(
 
 ### Componente nuevo: `src/components/dashboard/anomaly-alerts-table.tsx`
 
-Props: `alerts: MetricsAlert[]`, `loading: boolean`, `error: string | null`,
+Props: `alerts: AlertsResponse`, `loading: boolean`, `error: string | null`,
 `threshold: string` (el texto del input), `onThresholdChange` y
 `dateFilterActive: boolean`.
 

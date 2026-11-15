@@ -13,7 +13,8 @@ los inputs se muestra el rango disponible del dataset.
 ### `GET /api/metrics/facets`: rango de referencia
 
 - **Parámetros:** ninguno. Ignora cualquier parámetro que se le pase.
-- **Respuesta** (`MetricsFacets`, ya está en `financial-types.ts`):
+- **Respuesta** (`FacetsResponse` en `frontend/specs/api-types.ts`, con la misma
+  forma que `MetricsFacets` de `financial-types.ts`):
 
   ```json
   { "operation_types": ["income","outcome"], "business_types": ["B2B","B2C"],
@@ -62,8 +63,9 @@ componente de los inputs.
 ### Fetch
 
 Cambia `fetchFinancialData` a
-`fetchFinancialData(range: { startDate: string; endDate: string }, signal?: AbortSignal)`.
-Añade `start_date` y `end_date` a la query solo si no están vacíos.
+`fetchFinancialData(range: DateRangeFilter, signal?: AbortSignal)`, con
+`DateRangeFilter` de `frontend/specs/param-types.ts`. Convierte el estado a ese
+tipo dejando fuera las claves vacías: `""` no se convierte en `start_date: ""`.
 
 Mueve la llamada a un `useEffect` que dependa de `[startDate, endDate]`:
 
@@ -75,12 +77,13 @@ Mueve la llamada a un `useEffect` que dependa de `[startDate, endDate]`:
 
 El fetch de facets sigue igual: una vez al montar, aparte de este efecto.
 
-### Componente nuevo: `src/components/dashboard/date-range-filter.tsx`
+### Componente nuevo: `DateRangeControls` en `src/components/dashboard/date-range-controls.tsx`
 
+No se llama `DateRangeFilter` porque ese nombre ya es el del tipo de query.
 Props:
 
 ```ts
-interface DateRangeFilterProps {
+interface DateRangeControlsProps {
   startDate: string
   endDate: string
   minDate?: string // facets.min_date; undefined si /facets falló
@@ -124,7 +127,8 @@ menciona.
 En `src/lib/`, porque no hay setup de tests de componentes:
 
 - Extrae a `src/lib/` un helper puro que construya la query, por ejemplo
-  `buildDateRangeParams({ startDate, endDate }): URLSearchParams`. Pruébalo con:
+  `toDateRangeFilter(startDate: string, endDate: string): DateRangeFilter`, que
+  deja fuera las claves vacías. Pruébalo con:
   ambas vacías (query vacía), solo inicio, solo fin y ambas.
 - Extrae `isValidDateRange(start, end): boolean`, que devuelve `true` si alguna
   está vacía. Pruébalo con fechas iguales (válido) y con el día 1 de un mes frente

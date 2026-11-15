@@ -47,10 +47,10 @@ Sigue ese patrón en las funciones nuevas, con estos ajustes:
   del `useEffect` para que no gane una respuesta vieja. Ignora el `AbortError` en
   el `.catch`.
 - **Mensaje de error:** conserva el formato `Failed to fetch <qué>: <status>`.
-- **Tipos:** `response.json()` no se valida. Añade los tipos nuevos a
-  `frontend/src/lib/financial-types.ts`, copiando los nombres de campo tal cual de
-  la API (`snake_case`), y añade la fila correspondiente a la tabla de
-  `.agents/rules/api-contract.md`.
+- **Tipos:** `response.json()` no se valida. Los tipos de respuesta y de query
+  ya están escritos y verificados en `frontend/specs/api-types.ts` y
+  `frontend/specs/param-types.ts`. Impórtalos desde ahí; no los copies a
+  `financial-types.ts`. Ver `frontend/specs/README.md`.
 
 ### Parámetros que la API ignora en silencio
 

@@ -45,6 +45,14 @@ None of these are fixed. Fix them only when asked.
 - **Global random state:** `generate_mock_movements` seeds Python's shared generator.
 - **Permissive CORS:** `backend/app/main.py` combines `allow_origins=["*"]` with
   `allow_credentials=True`. This matters if the API is ever deployed.
+- **Inverted range accepted:** `/api/metrics/comparison` with `start_date` after
+  `end_date` returns `200` with every field at 0, instead of a `422`. Checked on
+  2026-11-14.
+- **Unknown query params ignored:** FastAPI answers `200` and ignores parameters a
+  route does not declare, so a typo returns unfiltered data. For example,
+  `/api/metrics/facets?start_date=…` returns the full range, and
+  `/api/metrics/categories/top?category=sales` still includes `others`. Checked on
+  2026-11-14.
 
 **Small fixes**
 

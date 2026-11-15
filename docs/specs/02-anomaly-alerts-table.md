@@ -1,7 +1,7 @@
 # Spec 2: Tabla de alertas de anomalías en el dashboard principal
 
 Lee antes las convenciones comunes en [README.md](README.md). Depende del estado
-`startDate`/`endDate` de la [spec 1](01-date-range-filter.md).
+`dateRange` de la [spec 1](01-date-range-filter.md).
 
 ## Objetivo
 
@@ -109,48 +109,18 @@ async function fetchMetricsAlerts(
 ```
 
 - Mensaje de error: `Failed to fetch metrics alerts: ${status}`.
-- Efecto con dependencias `[threshold, startDate, endDate]`. No hagas la petición
-  si el umbral es inválido o si `startDate > endDate` (spec 1). Cancela la
-  petición anterior.
-- Para la query, reutiliza el helper de fechas de la spec 1.
-
-### Componente nuevo: `src/components/dashboard/anomaly-alerts-table.tsx`
-
-Props: `alerts: AlertsResponse`, `loading: boolean`, `error: string | null`,
-`threshold: string` (el texto del input), `onThresholdChange` y
-`dateFilterActive: boolean`.
-
-- Envuelto en `Card`, como los gráficos, con el título "Spending anomalies".
-- Va en su propia `<section aria-label="Spending anomalies">`, después de la
-  sección de gráficos.
-
-Columnas, en este orden:
-
-| Encabezado | Valor |
-|---|---|
-| "Period" | `period` formateado como `"Dec 2025"` |
-| "Outcome" | `formatCurrency(outcome_total)` |
-| "Baseline (avg. of prior periods)" | `formatCurrency(baseline_average)` |
-| "Increase" | `formatPercent(increase_ratio * 100)` |
-
-Para formatear el periodo, exporta y reutiliza `formatMonthYearLabel` de
-`financial-utils.ts`. Ya trabaja sobre el string `YYYY-MM` sin pasar por UTC.
-
-Usa una `<table>` semántica con `<th scope="col">`, y alinea a la derecha las
-columnas numéricas.
-
-### Estados
-
-| Situación | Resultado |
-|---|---|
-| Cargando | `Skeleton` con la cabecera de la tabla y 3 filas |
-| `[]` | La tabla **no desaparece**: título, input y el mensaje "No spending anomalies above {threshold*100}% for this period." |
-| Datos | Filas en el orden de la API |
-| Falla la petición | El error dentro de la tarjeta: "Could not load spending anomalies." Las KPI y los gráficos no se ven afectados |
-| Umbral inválido | El error del ajuste 3; la última tabla válida se mantiene |
+- Efecto con dependencias `[thresholdInput, dateRange]`. Espera 300 ms tras el
+  último cambio válido. No hagas la petición si el umbral es inválido o si el
+  rango es inválido (spec 1). Cancela la petición anterior.
 
 El error de alertas vive en su propio estado de `App` (`alertsError`), separado del
 error de página. Así un fallo de la tabla no tapa el resto del dashboard.
+
+### Componente nuevo: `AnomalyAlertsPanel`
+
+Las props, las cuatro columnas con sus tipos, los estados (incluido el vacío) y
+el comportamiento con un umbral fuera de rango están en
+[frontend/specs/components.md](../../frontend/specs/components.md#feature-2-anomaly-alerts-table).
 
 ## Tests (`src/lib/`)
 

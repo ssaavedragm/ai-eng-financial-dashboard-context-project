@@ -65,7 +65,7 @@ referencia del filtro de fechas (spec 1).
 ### 6. Filtro de fechas: compartido
 
 El PM pide filtrar la comparativa por rango de fechas. **Resolución:** se usa el
-mismo estado `startDate`/`endDate` de la spec 1, compartido entre pestañas. El
+mismo estado `dateRange` de la spec 1, compartido entre pestañas. El
 componente `DateRangeControls` aparece encima del contenido en las dos vistas.
 
 ## Endpoint: `GET /api/metrics/categories/top`
@@ -114,63 +114,21 @@ async function fetchTopIncomeCategories(
 ```
 
 - Mensaje de error: `Failed to fetch top categories: ${status}`.
-- El efecto depende de `[view, startDate, endDate]` y solo hace la petición
-  cuando `view === "business-comparison"`. Sáltalo si `startDate > endDate`
-  (spec 1) y cancela la petición anterior.
+- El efecto depende de `[view, dateRange]` y solo hace la petición cuando
+  `view === "business-comparison"`. Sáltalo si el rango es inválido (spec 1) y
+  cancela la petición anterior.
+- Pide B2B y B2C con `Promise.all`. Si falla cualquiera de las dos, no muestres
+  datos parciales.
 
-### Helper puro (`src/lib/financial-utils.ts`)
+### Componentes, helpers y estados
 
-```ts
-export interface CategoryShare {
-  category: Category
-  totalAmount: number
-  sharePercent: number // de 0 a 100
-}
-export function computeCategoryShares(items: TopCategoriesResponse): {
-  rows: CategoryShare[]
-  groupTotal: number
-}
-```
-
-### Componentes nuevos en `src/components/dashboard/`
-
-**`business-category-table.tsx`**
-
-- Props: `businessType`, `rows: CategoryShare[]`, `groupTotal`, `loading`, `error`.
-- Va en un `Card` con el título "B2B income by category" o
-  "B2C income by category".
-- Columnas: "Category" (con la primera letra en mayúscula: `sales` → "Sales"),
-  "Income" (`formatCurrency`) y "Share of total" (`formatPercent`).
-- Una fila final "Total" con `formatCurrency(groupTotal)`.
-
-**`business-income-chart.tsx`**
-
-- Props: `data: { businessType: BusinessType; income: number }[]`, `loading`.
-- Va en un `Card` con el título "Total income: B2B vs B2C".
-- Gráfico de barras de Recharts con 2 barras, `B2B` y `B2C`. Las dos usan
-  `var(--chart-income)`, porque son la misma métrica (regla de colores de
-  `frontend.md`), y se distinguen por la etiqueta del eje X.
-- Tooltip y eje Y con `formatCurrency`.
-
-### Disposición
-
-- Las pestañas van debajo de `DashboardHeader`, como botones con
-  `role="tab"`/`aria-selected` dentro de un `role="tablist"`.
-- Debajo va `DateRangeControls`, compartido.
-- Las tablas van en `grid grid-cols-1 gap-4 xl:grid-cols-2`, como los gráficos
-  actuales. B2B a la izquierda.
-- El gráfico va debajo, a todo el ancho.
-- La pestaña "Overview" muestra el dashboard actual con la tabla de la spec 2.
-
-### Estados
-
-| Situación | Resultado |
-|---|---|
-| Cargando | Skeleton en cada tabla y en el gráfico |
-| Una línea sin ingresos en el rango (`[]`) | Su tabla muestra "No income for this period."; en el gráfico su barra vale 0 |
-| Las dos vacías | Las dos tablas vacías; el gráfico muestra "No data available to display", como los gráficos actuales |
-| Falla una de las dos peticiones | "Could not load B2B vs B2C comparison." en la vista; no se muestran datos parciales |
-| `start > end` | No se hacen peticiones; se ve el error de validación de la spec 1 |
+`ViewTabs`, `BusinessComparisonView`, `BusinessCategoryTable` y
+`BusinessIncomeChart` (props, disposición en dos paneles, panel vacío y qué
+representan los dos puntos del gráfico) están en
+[frontend/specs/components.md](../../frontend/specs/components.md#feature-3-b2b-vs-b2c-comparison-view).
+Ahí también están los helpers `computeCategoryShares` y
+`computeBusinessIncomeTotals`, y los tipos derivados `CategoryShare`,
+`BusinessIncomeTotal` y `DashboardView`, que van en `src/lib/financial-types.ts`.
 
 ## Tests (`src/lib/`)
 
@@ -181,6 +139,9 @@ export function computeCategoryShares(items: TopCategoriesResponse): {
 - Con dos filas, los porcentajes son proporcionales y suman 100 dentro de una
   tolerancia.
 - Conserva el orden de la API.
+
+`computeBusinessIncomeTotals`: devuelve siempre 2 puntos, B2B primero, y un
+total de 0 para una lista vacía.
 
 ## Criterios de aceptación
 

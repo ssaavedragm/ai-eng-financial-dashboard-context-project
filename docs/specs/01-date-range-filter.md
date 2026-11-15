@@ -53,21 +53,21 @@ También acepta `category` y `operation_type`, pero esta funcionalidad no los us
 ### Estado (en `App.tsx`)
 
 ```ts
-const [startDate, setStartDate] = useState<string>(""); // "" = sin límite
-const [endDate, setEndDate] = useState<string>("");
+const [dateRange, setDateRange] = useState<DateRangeFilter>({}); // {} = sin límite
 ```
 
 Este estado lo comparten las specs 2 y 3. Defínelo en `App`, no dentro del
-componente de los inputs.
+componente de los inputs. En esta spec, `startDate` y `endDate` significan
+`dateRange.start_date` y `dateRange.end_date`.
 
 ### Fetch
 
 Cambia `fetchFinancialData` a
 `fetchFinancialData(range: DateRangeFilter, signal?: AbortSignal)`, con
-`DateRangeFilter` de `frontend/specs/param-types.ts`. Convierte el estado a ese
-tipo dejando fuera las claves vacías: `""` no se convierte en `start_date: ""`.
+`DateRangeFilter` de `frontend/specs/param-types.ts`. El estado nunca guarda
+`""`: un input vacío elimina su clave.
 
-Mueve la llamada a un `useEffect` que dependa de `[startDate, endDate]`:
+Mueve la llamada a un `useEffect` que dependa de `[dateRange]`:
 
 1. Si las dos fechas tienen valor y `startDate > endDate`, **no hagas la
    petición**. Muestra el error de validación (ver abajo) y deja las KPI y los
@@ -80,31 +80,9 @@ El fetch de facets sigue igual: una vez al montar, aparte de este efecto.
 ### Componente nuevo: `DateRangeControls` en `src/components/dashboard/date-range-controls.tsx`
 
 No se llama `DateRangeFilter` porque ese nombre ya es el del tipo de query.
-Props:
-
-```ts
-interface DateRangeControlsProps {
-  startDate: string
-  endDate: string
-  minDate?: string // facets.min_date; undefined si /facets falló
-  maxDate?: string // facets.max_date
-  onStartDateChange: (value: string) => void
-  onEndDateChange: (value: string) => void
-}
-```
-
-- **Inputs:** dos `<input type="date">` con `<label>` visibles "Start date" y
-  "End date". Pon `min={minDate}` y `max={maxDate}` cuando existan. Esos
-  atributos solo guían el selector, no validan, así que la validación de abajo
-  sigue haciendo falta.
-- **Referencia de rango:** "Available data: {minDate} – {maxDate}", con las fechas
-  tal cual en `YYYY-MM-DD`, el mismo formato que el input. Si facets falló, omite
-  el texto y deja los inputs funcionando. Facets sigue siendo decorativo y no
-  bloquea la página, como dice `frontend.md`.
-- **Botón "Clear":** vacía las dos fechas. Solo se muestra si alguna tiene valor.
-- **Error de validación:** si `startDate > endDate`, muestra debajo de los inputs
-  "Start date must be on or before end date." con `role="alert"`.
-- **Ubicación:** debajo de `DashboardHeader`, encima de la fila de KPI.
+Las props, la disposición, el caso de una sola fecha, la referencia de rango y la
+validación están en
+[frontend/specs/components.md](../../frontend/specs/components.md#feature-1-date-range-filter).
 
 ### Cabecera
 
@@ -126,13 +104,12 @@ menciona.
 
 En `src/lib/`, porque no hay setup de tests de componentes:
 
-- Extrae a `src/lib/` un helper puro que construya la query, por ejemplo
-  `toDateRangeFilter(startDate: string, endDate: string): DateRangeFilter`, que
-  deja fuera las claves vacías. Pruébalo con:
-  ambas vacías (query vacía), solo inicio, solo fin y ambas.
-- Extrae `isValidDateRange(start, end): boolean`, que devuelve `true` si alguna
-  está vacía. Pruébalo con fechas iguales (válido) y con el día 1 de un mes frente
-  al último del anterior.
+- `toDateRangeFilter(start: string, end: string): DateRangeFilter`, que recibe
+  el texto de los inputs y deja fuera las claves vacías. Pruébalo con: ambas
+  vacías (devuelve `{}`), solo inicio, solo fin y ambas.
+- `isValidDateRange(range: DateRangeFilter): boolean`, que devuelve `true` si
+  falta alguna clave. Pruébalo con fechas iguales (válido) y con el día 1 de un
+  mes frente al último del anterior.
 
 ## Criterios de aceptación
 

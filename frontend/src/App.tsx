@@ -1,8 +1,21 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { KPIRow } from "@/components/dashboard/kpi-row";
-import { IncomeOutcomeChart } from "@/components/dashboard/income-outcome-chart";
-import { ProfitPercentChart } from "@/components/dashboard/profit-percent-chart";
+import { ChartCardSkeleton } from "@/components/dashboard/chart-card-skeleton";
+
+// Recharts is most of the bundle. Loading the charts lazily (the Vite
+// equivalent of next/dynamic, vercel-react-best-practices
+// bundle-dynamic-imports) lets the header and KPIs render without it.
+const IncomeOutcomeChart = lazy(() =>
+  import("@/components/dashboard/income-outcome-chart").then((m) => ({
+    default: m.IncomeOutcomeChart,
+  })),
+);
+const ProfitPercentChart = lazy(() =>
+  import("@/components/dashboard/profit-percent-chart").then((m) => ({
+    default: m.ProfitPercentChart,
+  })),
+);
 import {
   type FinancialMovement,
   type KPIMetrics,
@@ -65,7 +78,7 @@ function App() {
   }, []);
 
   return (
-    <main className="dark min-h-screen bg-background text-foreground">
+    <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8">
           <DashboardHeader period={period} />
@@ -90,9 +103,26 @@ function App() {
             <h2 id="charts-heading" className="sr-only">
               Financial charts
             </h2>
+            {/* The chart chunk is only requested once the data has arrived, so
+                it does not compete with /api/metrics for bandwidth and delay
+                the KPI values (the LCP element). vercel-react-best-practices
+                bundle-conditional. */}
             <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-              <IncomeOutcomeChart data={monthlyData} loading={loading} />
-              <ProfitPercentChart data={monthlyData} loading={loading} />
+              {loading ? (
+                <>
+                  <ChartCardSkeleton />
+                  <ChartCardSkeleton />
+                </>
+              ) : (
+                <>
+                  <Suspense fallback={<ChartCardSkeleton />}>
+                    <IncomeOutcomeChart data={monthlyData} />
+                  </Suspense>
+                  <Suspense fallback={<ChartCardSkeleton />}>
+                    <ProfitPercentChart data={monthlyData} />
+                  </Suspense>
+                </>
+              )}
             </div>
           </section>
         </div>

@@ -41,8 +41,10 @@ page: if the facets request fails, the header simply omits its period label.
   `border-border`) rather than literal colors.
 - Series colors come from `var(--chart-income)`, `var(--chart-outcome)` and
   `var(--chart-profit)`. Reuse them so a metric keeps its color across charts.
-- The app always renders dark because `App.tsx` sets `.dark` on `<main>`. New
-  tokens need values in both `:root` and `.dark`.
+- The app always renders dark because `index.html` sets `.dark` on `<html>`,
+  so the first paint is dark before React mounts. New tokens need values in
+  both `:root` and `.dark`. Because `.dark` is on the root element, the
+  `--color-*` theme variables also resolve to their dark values.
 - `components.json` has `cssVariables: false`, so check that anything generated
   by the shadcn CLI uses the theme tokens.
 

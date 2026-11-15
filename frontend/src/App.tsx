@@ -47,9 +47,8 @@ function App() {
         setMonthlyData(computeMonthlyData(movements));
       })
       .catch(() => {
-        setError(
-          "No se pudo cargar la informacion financiera. Revisa la API de backend.",
-        );
+        // English to match <html lang="en"> (WCAG 3.1.2, language of parts).
+        setError("Could not load financial data. Check the backend API.");
       })
       .finally(() => {
         setLoading(false);
@@ -72,21 +71,29 @@ function App() {
           <DashboardHeader period={period} />
 
           {error ? (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive-foreground">
+            <div
+              role="alert"
+              className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive-foreground"
+            >
               {error}
             </div>
           ) : null}
 
-          <section aria-label="Key performance indicators">
+          <section aria-labelledby="kpi-heading" aria-busy={loading}>
+            <h2 id="kpi-heading" className="sr-only">
+              Key performance indicators
+            </h2>
             <KPIRow metrics={metrics} loading={loading} />
           </section>
 
-          <section
-            aria-label="Financial charts"
-            className="grid grid-cols-1 gap-4 xl:grid-cols-2"
-          >
-            <IncomeOutcomeChart data={monthlyData} loading={loading} />
-            <ProfitPercentChart data={monthlyData} loading={loading} />
+          <section aria-labelledby="charts-heading" aria-busy={loading}>
+            <h2 id="charts-heading" className="sr-only">
+              Financial charts
+            </h2>
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+              <IncomeOutcomeChart data={monthlyData} loading={loading} />
+              <ProfitPercentChart data={monthlyData} loading={loading} />
+            </div>
           </section>
         </div>
       </div>

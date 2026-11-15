@@ -57,6 +57,25 @@ with `docker compose up --build`.
 
 - **#19 and #20:** still need a real check. Do not state them as facts until then.
 
+## Feature specs (`docs/specs/`)
+
+Checked on 2026-11-14 against the running API (`/openapi.json` and real requests)
+and the current frontend. Numbers change with today's date.
+
+| # | Claim in the specs | Result | How it was checked | Your check |
+|---|---|---|---|---|
+| S1 | `/api/metrics` already filters by `start_date`/`end_date`, inclusive; no backend change needed | ✅ | March gives 30 rows; only start gives 240, only end gives 150 | |
+| S2 | Inverted or out-of-range dates give `200 []`; a malformed date gives `422` | ✅ | `start>end` → `[]`; `2030-01-01` → `[]`; `2026-3-1` → 422 | |
+| S3 | Unknown query params are silently ignored | ✅ | `/facets?start_date=…` gives the full range; `/categories/top?category=sales` still includes `others` | |
+| S4 | `baseline_average` is the mean of all prior periods in range, not of the last 3 | ✅ | 2026-03: API 55334.29 = all-prior mean; last-3 mean 59977.58 | |
+| S5 | `threshold` takes any value `>= 0` with no maximum; alerts use `>` | ✅ | `1.5` → `[]`, `-0.1` and `abc` → 422; `routes.py` | |
+| S6 | A one-month range never gives alerts; partial months change the baseline | ✅ | March → `[]`; Feb 1–Apr 30 → 1 alert, Feb 15–Apr 30 → 2 | |
+| S7 | Income only uses `sales` and `others`, so top-5 has at most 2 rows | ✅ | Both business types return 2 rows; distinct income categories in `/api/metrics` | |
+| S8 | Sum of top-5 rows equals the group's total income | ✅ | B2B 615540.72 three ways (top sum, `/b2b` raw sum, `/summary`); B2C 642606.15 | |
+| S9 | `business_type` is case-sensitive | ✅ | `b2b` → 422 | |
+| S10 | The fetch pattern, the "No data available to display" text and the unexported `formatMonthYearLabel` match the specs | ✅ | Read `App.tsx`, both chart components and `financial-utils.ts` | |
+| S11 | "3-period moving average" and "new page" are resolved by spec decisions, not by the PM | ❓ | Needs PM confirmation; see `docs/specs/README.md` | |
+
 ## Reviewer steps
 
 Check these yourself and fill in the last column:
